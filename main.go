@@ -61,12 +61,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	type messageListener struct {
+	type messageEvent struct {
 		greeting map[string]string
 		handlers struct{}
 	}
 
-	var r messageListener
+	var r messageEvent
 
 	r.greeting = map[string]string{
 		"hello":     "Greetings!",
@@ -74,54 +74,25 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"hi":        "Hello!",
 		"hey":       "hey",
 	}
+  r.handlers = struct{}{}
+  }
 
 	input := strings.ToLower(m.Content)
 
 	if value, ok := r.greeting[input]; ok {
-		s.ChannelMessageSend(m.ChannelID, value+" "+m.Author.Username)
+		s.ChannelMessageSend(m.ChannelID, value +" "+ m.Author.Username)
 	}
-}
-
-type monster struct {
-	name      string
-	damage    int
-	initative int
-}
-type player struct {
-	name          string
-	initative     int
-	currentHealth int
-	maxHealth     int
-	AC            int
+  if value, ok := r.handler[input]; ok {
+    
+  }
 }
 
 type entity interface {
-	attack(target entity, dmg int)
-	getCurrentDmgDone() int
+  attack(target entity, dmg int)
+  getCurrentDmgDone() int
+  getInitiative() int
 }
 
-func (p *player) attack(target entity, dmg int) {
-	switch v := target.(type) {
-	case *player:
-		v.currentHealth = v.currentHealth - dmg
-	case *monster:
-		v.damage = v.damage + dmg
-	}
-}
 
-func (m *monster) attack(target entity, dmg int) {
-	switch v := target.(type) {
-	case *player:
-		v.currentHealth = v.currentHealth - dmg
-	case *monster:
-		v.damage = v.damage + dmg
-	}
-}
 
-func (p *player) getCurrentDmgDone() int {
-	return 0 // Implement the logic if needed
-}
 
-func (m *monster) getCurrentDmgDone() int {
-	return m.damage
-}

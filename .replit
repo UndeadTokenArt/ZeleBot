@@ -1,0 +1,14 @@
+
+modules = ["go"]
+run = "go build && ./ZeleBot"
+
+[gitHubImport]
+requiredFiles = [".replit"]
+
+[deployment]
+run = ["sh", "-c", "go build && ./ZeleBot"]
+ignorePorts = false
+deploymentTarget = "gce"
+
+[nix]
+channel = "stable-23_05"
