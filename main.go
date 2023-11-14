@@ -62,10 +62,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	type messageEvent struct {
+    commands map[string]func
 		greeting map[string]string
-		handlers struct{}
 	}
-
 	var r messageEvent
 
 	r.greeting = map[string]string{
@@ -74,17 +73,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"hi":        "Hello!",
 		"hey":       "hey",
 	}
-  r.handlers = struct{}{}
-  }
+
+  r.commands = map[string]func{
+    "begin combat" : beginCombat,
+    }
+
 
 	input := strings.ToLower(m.Content)
 
 	if value, ok := r.greeting[input]; ok {
 		s.ChannelMessageSend(m.ChannelID, value +" "+ m.Author.Username)
 	}
-  if value, ok := r.handler[input]; ok {
-    
-  }
+  if value, ok := r.command[input]; ok {
+    s.ChannelMessageSend(m.ChannelID, value)
 }
 
 type entity interface {
@@ -93,6 +94,13 @@ type entity interface {
   getInitiative() int
 }
 
+func beginCombat(s *discordgo.Session, m *discordgo.MessageCreate) {
+  for time.Sleep(time.second * 180) {
+    s.ChannelMessageSend(m.ChannelID, "Starting initative tracker")
+    s.channelMessageSend(m.ChannelID, "Please input your initative total, you have 3 minutes to comply")
+    
+  }
+}
 
 
 

@@ -3,7 +3,7 @@ package main
 type monster struct {
   name      string
   damage    int
-  initative int
+  initiative int
 }
 
 func (m *monster) attack(target entity, dmg int) {
@@ -18,6 +18,6 @@ func (m *monster) attack(target entity, dmg int) {
 func (m *monster) getCurrentDmgDone() int {
   return m.damage
 }
-func (p *player) getInitiative() int {
-	return p.initiative
+func (m *monster) getInitiative() int {
+  return m.initiative
 }

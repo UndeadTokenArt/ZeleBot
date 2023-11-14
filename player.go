@@ -3,7 +3,7 @@ package main
 
 type player struct {
   name          string
-  initative     int
+  initiative     int
   currentHealth int
   maxHealth     int
   AC            int
