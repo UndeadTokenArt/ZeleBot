@@ -62,10 +62,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	type messageEvent struct {
+    commands map[string]func
 		greeting map[string]string
+<<<<<<< HEAD
 		commands map[string]string
+=======
+>>>>>>> 81e7a89d770dd06b697144b471b3f04b8ab74710
 	}
-
 	var r messageEvent
 
 	r.greeting = map[string]string{
@@ -75,9 +78,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"hey":       "hey",
 	}
 
+<<<<<<< HEAD
 	r.commands = map[string]string{
 		"begin battle": beginBattle(),
 	}
+=======
+  r.commands = map[string]func{
+    "begin combat" : beginCombat,
+    }
+
+>>>>>>> 81e7a89d770dd06b697144b471b3f04b8ab74710
 
 	input := strings.ToLower(m.Content)
 
@@ -87,6 +97,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if value, ok := r.commands[input]; ok {
 		s.ChannelMessageSend(m.ChannelID, value)
 	}
+<<<<<<< HEAD
+=======
+  if value, ok := r.command[input]; ok {
+    s.ChannelMessageSend(m.ChannelID, value)
+>>>>>>> 81e7a89d770dd06b697144b471b3f04b8ab74710
 }
 
 type entity interface {
@@ -95,7 +110,20 @@ type entity interface {
 	getInitiative() int
 }
 
+<<<<<<< HEAD
 func beginBattle() string {
 	string := "begin battle"
 	return string
 }
+=======
+func beginCombat(s *discordgo.Session, m *discordgo.MessageCreate) {
+  for time.Sleep(time.second * 180) {
+    s.ChannelMessageSend(m.ChannelID, "Starting initative tracker")
+    s.channelMessageSend(m.ChannelID, "Please input your initative total, you have 3 minutes to comply")
+    
+  }
+}
+
+
+
+>>>>>>> 81e7a89d770dd06b697144b471b3f04b8ab74710
