@@ -63,7 +63,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	type messageEvent struct {
 		greeting map[string]string
-		handlers struct{}
+		commands map[string]string
 	}
 
 	var r messageEvent
@@ -74,25 +74,28 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"hi":        "Hello!",
 		"hey":       "hey",
 	}
-  r.handlers = struct{}{}
-  }
+
+	r.commands = map[string]string{
+		"begin battle": beginBattle(),
+	}
 
 	input := strings.ToLower(m.Content)
 
 	if value, ok := r.greeting[input]; ok {
-		s.ChannelMessageSend(m.ChannelID, value +" "+ m.Author.Username)
+		s.ChannelMessageSend(m.ChannelID, value+" "+m.Author.Username)
 	}
-  if value, ok := r.handler[input]; ok {
-    
-  }
+	if value, ok := r.commands[input]; ok {
+		s.ChannelMessageSend(m.ChannelID, value)
+	}
 }
 
 type entity interface {
-  attack(target entity, dmg int)
-  getCurrentDmgDone() int
-  getInitiative() int
+	attack(target entity, dmg int)
+	getCurrentDmgDone() int
+	getInitiative() int
 }
 
-
-
-
+func beginBattle() string {
+	string := "begin battle"
+	return string
+}

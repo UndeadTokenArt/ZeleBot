@@ -1,23 +1,23 @@
 package main
 
 type monster struct {
-  name      string
-  damage    int
-  initative int
+	name       string
+	damage     int
+	initiative int
 }
 
 func (m *monster) attack(target entity, dmg int) {
-  switch v := target.(type) {
-  case *player:
-    v.currentHealth = v.currentHealth - dmg
-  case *monster:
-    v.damage = v.damage + dmg
-  }
+	switch v := target.(type) {
+	case *player:
+		v.currentHealth = v.currentHealth - dmg
+	case *monster:
+		v.damage = v.damage + dmg
+	}
 }
 
 func (m *monster) getCurrentDmgDone() int {
-  return m.damage
+	return m.damage
 }
-func (p *player) getInitiative() int {
-	return p.initiative
+func (m *monster) getInitiative() int {
+	return m.initiative
 }

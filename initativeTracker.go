@@ -1,7 +1,7 @@
 package main
 
 type InitiativeTracker struct {
-  entities []entity
+	entities []entity
 }
 
 func (it *InitiativeTracker) addEntity(e entity) {
@@ -9,11 +9,9 @@ func (it *InitiativeTracker) addEntity(e entity) {
 }
 
 func (it *InitiativeTracker) sortEntities() {
-  sort.Slice(it.entities, func(i, j int) bool {
-    return it.entities[i].getInitiative() > it.entities[j].getInitiative()
-  })
+	// figure out sorting logic
 }
-             
+
 func (it *InitiativeTracker) getCurrentEntity() entity {
 	if len(it.entities) > 0 {
 		return it.entities[0]
