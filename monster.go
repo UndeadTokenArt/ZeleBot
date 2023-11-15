@@ -1,15 +1,9 @@
 package main
 
 type monster struct {
-<<<<<<< HEAD
 	name       string
 	damage     int
 	initiative int
-=======
-  name      string
-  damage    int
-  initiative int
->>>>>>> 81e7a89d770dd06b697144b471b3f04b8ab74710
 }
 
 func (m *monster) attack(target entity, dmg int) {
@@ -27,9 +21,5 @@ func (m *monster) getCurrentDmgDone() int {
 func (m *monster) getInitiative() int {
 	return m.initiative
 }
-<<<<<<< HEAD
-=======
-func (m *monster) getInitiative() int {
-  return m.initiative
-}
->>>>>>> 81e7a89d770dd06b697144b471b3f04b8ab74710
+
+
