@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-
+	"time"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -95,22 +95,65 @@ type entity interface {
 	getInitiative() int
 }
 
-func beginBattle() string {
-	// prompt the players for their initative total
-  s.ChannelMessageSend(m.ChannelID, "What is the initiative total?")
-  // warn them of timer 3min
-  s.ChannelMessageSend(m.ChannelID, "Timer: 3 minutes")
-  // ask the dm for number of monsters to add to the tracker
-  s.ChannelMessageSend(m.ChannelID, "How many monsters do you want to add?")
-  // add the monsters to the tracker
-  
-  // give the monsters a color or unique name
-  
-  // add the monsters to the tracker
-  // collect the player name from their meta data and match it with thier input
-  // sort the order by value
-  // begin the tracker
-  
-	string := "begin battle"
-	return string
+func beginBattle(s *discordgo.Session, channelID string) {
+	initiativeTracker.clearEntities()
+
+	// Ask each player for initiative
+	s.ChannelMessageSend(channelID, "Let's begin the battle! Please provide your initiative total.")
+
+	for {
+		select {
+		case <-time.After(30 * time.Second):
+			// Timeout after 30 seconds
+			s.ChannelMessageSend(channelID, "Initiative input timeout. Battle canceled.")
+			return
+		default:
+			msg, err := s.ChannelMessageSend(channelID, "What is your initiative total?")
+			if err != nil {
+				fmt.Println("Error sending message:", err)
+				return
+			}
+
+			response, err := s.ChannelMessageWaitForSingleChoice(channelID, time.Second*30, msg.ID, "Please enter your initiative:", []string{"cancel"})
+			if err != nil {
+				fmt.Println("Error waiting for message:", err)
+				return
+			}
+
+			if response == "cancel" {
+				s.ChannelMessageSend(channelID, "Battle canceled.")
+				return
+			}
+
+			initiative, err := strconv.Atoi(response)
+			if err != nil {
+				s.ChannelMessageSend(channelID, "Invalid initiative input. Please enter a number.")
+				continue
+			}
+
+			player := &player{
+				name:       response,
+				initiative: initiative,
+				// Other player fields...
+			}
+
+			initiativeTracker.addEntity(player)
+
+			s.ChannelMessageSend(channelID, fmt.Sprintf("%s, your initiative is %d.", player.name, player.initiative))
+
+			// Check if all players have provided initiative
+			if len(initiativeTracker.entities) == numberOfPlayers {
+				initiativeTracker.sortEntities()
+				displayTurnOrder(s, channelID, initiativeTracker.entities)
+				return
+			}
+		}
+	}
+}
+
+func displayTurnOrder(s *discordgo.Session, channelID string, entities []entity) {
+	s.ChannelMessageSend(channelID, "Initiative order:")
+	for _, e := range entities {
+		s.ChannelMessageSend(channelID, fmt.Sprintf("%s: Initiative %d", e.(*player).name, e.getInitiative()))
+	}
 }
