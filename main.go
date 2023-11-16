@@ -61,6 +61,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if strings.ToLower(m.Content) == "!beginbattle" {
+		beginBattle(s, m.ChannelID)
+	}
+
 	type messageEvent struct {
 		greeting map[string]string
     commands map[string]string
@@ -98,8 +102,7 @@ type entity interface {
 func beginBattle(s *discordgo.Session, channelID string) {
 	initiativeTracker.clearEntities()
 
-	// Ask each player for initiative
-	s.ChannelMessageSend(channelID, "Let's begin the battle! Please provide your initiative total.")
+	s.ChannelMessageSend(channelID, "Let's begin the battle! Please provide your initiative total. Type 'cancel' at any time to cancel the battle.")
 
 	for {
 		select {
@@ -108,31 +111,40 @@ func beginBattle(s *discordgo.Session, channelID string) {
 			s.ChannelMessageSend(channelID, "Initiative input timeout. Battle canceled.")
 			return
 		default:
-			msg, err := s.ChannelMessageSend(channelID, "What is your initiative total?")
+			s.ChannelMessageSend(channelID, "What is your initiative total?")
+
+			// Wait for the user's response
+			msg, err := s.ChannelMessageCreate(channelID)
 			if err != nil {
-				fmt.Println("Error sending message:", err)
+				fmt.Println("Error creating message:", err)
 				return
 			}
 
-			response, err := s.ChannelMessageWaitForSingleChoice(channelID, time.Second*30, msg.ID, "Please enter your initiative:", []string{"cancel"})
+			// Wait for the user's response
+			response, err := s.ChannelMessageWait(msg.ID, time.Second*30)
 			if err != nil {
 				fmt.Println("Error waiting for message:", err)
 				return
 			}
 
-			if response == "cancel" {
+			if response.Author.ID == s.State.User.ID {
+				// Ignore messages from the bot itself
+				continue
+			}
+
+			if strings.ToLower(response.Content) == "cancel" {
 				s.ChannelMessageSend(channelID, "Battle canceled.")
 				return
 			}
 
-			initiative, err := strconv.Atoi(response)
+			initiative, err := strconv.Atoi(response.Content)
 			if err != nil {
 				s.ChannelMessageSend(channelID, "Invalid initiative input. Please enter a number.")
 				continue
 			}
 
 			player := &player{
-				name:       response,
+				name:       response.Author.Username,
 				initiative: initiative,
 				// Other player fields...
 			}
@@ -150,6 +162,7 @@ func beginBattle(s *discordgo.Session, channelID string) {
 		}
 	}
 }
+
 
 func displayTurnOrder(s *discordgo.Session, channelID string, entities []entity) {
 	s.ChannelMessageSend(channelID, "Initiative order:")
