@@ -9,8 +9,9 @@ func (it *InitiativeTracker) addEntity(e entity) {
 }
 
 func (it *InitiativeTracker) sortEntities() {
-	// figure out sorting logic
-
+	sort.Slice(it.entities, func(i, j int) bool {
+		return it.entities[i].getInitiative() > it.entities[j].getInitiative()
+	})
 }
 
 func (it *InitiativeTracker) getCurrentEntity() entity {
@@ -25,4 +26,8 @@ func (it *InitiativeTracker) nextTurn() {
 		// Move the current entity to the end of the slice
 		it.entities = append(it.entities[1:], it.entities[0])
 	}
+}
+
+func (it *InitiativeTracker) clearEntities() {
+	it.entities = nil
 }
