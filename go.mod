@@ -1,6 +1,6 @@
 module github.com/UndeadTokenArt/ZeleBot
 
-go 1.23
+go 1.21.0
 
 require github.com/bwmarrin/discordgo v0.27.1
 

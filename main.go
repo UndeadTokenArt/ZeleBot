@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
-	"time"
+
 	"github.com/bwmarrin/discordgo"
 )
 
 var Token string
+var numberOfPlayers = 2
 
 func init() {
 	Token = os.Getenv("token")
@@ -27,8 +29,6 @@ func main() {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
-  
-
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
@@ -62,94 +62,92 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.ToLower(m.Content) == "!beginbattle" {
-		beginBattle(s, m.ChannelID)
+		beginBattle(s, m.ChannelID, m.Reference().MessageID, &InitiativeTracker{})
 	}
 }
 
 type entity interface {
-  attack(target entity, dmg int)
-  getCurrentDmgDone() int
-  getInitiative() int
+	attack(target entity, dmg int)
+	getCurrentDmgDone() int
+	getInitiative() int
 }
 
-func beginBattle(s *discordgo.Session, channelID string) {
-  initiativeTracker.clearEntities()
+func beginBattle(s *discordgo.Session, channelID string, messageID string, it *InitiativeTracker) {
+	it.ClearEntities()
 
-  s.ChannelMessageSend(channelID, "Let's begin the battle! Please provide your initiative total. Type 'cancel' at any time to cancel the battle.")
+	s.ChannelMessageSend(channelID, "Let's begin the battle! Please provide your initiative total. Type 'cancel' at any time to cancel the battle.")
 
-  // Create a map to store user input
-  userInput := make(map[string]int)
+	// Create a map to store user input
+	userInput := make(map[string]int)
 
-  // Function to check if all players have provided initiative
-  allPlayersReady := func() bool {
-    return len(userInput) == numberOfPlayers
-  }
+	// Function to check if all players have provided initiative
+	allPlayersReady := func() bool {
+		return len(userInput) == numberOfPlayers
+	}
 
-  // Function to display the current initiative status
-  displayInitiativeStatus := func() {
-    var statusMessage strings.Builder
-    statusMessage.WriteString("Initiative status:\n")
-    for player, initiative := range userInput {
-      statusMessage.WriteString(fmt.Sprintf("%s: Initiative %d\n", player, initiative))
-    }
-    s.ChannelMessageSend(channelID, statusMessage.String())
-  }
+	// Function to display the current initiative status
+	displayInitiativeStatus := func() {
+		var statusMessage strings.Builder
+		statusMessage.WriteString("Initiative status:\n")
+		for player, initiative := range userInput {
+			statusMessage.WriteString(fmt.Sprintf("%s: Initiative %d\n", player, initiative))
+		}
+		s.ChannelMessageSend(channelID, statusMessage.String())
+	}
 
-  // Function to cancel the battle
-  cancelBattle := func() {
-    s.ChannelMessageSend(channelID, "Battle canceled.")
-  }
+	// Function to cancel the battle
+	cancelBattle := func() {
+		s.ChannelMessageSend(channelID, "Battle canceled.")
+	}
 
-  for {
-    // Collect messages
-    msg, err := s.ChannelMessageCreate(channelID)
-    if err != nil {
-      fmt.Println("Error creating message:", err)
-      cancelBattle()
-      return
-    }
+	for {
+		// Collect messages
+		msg, err := s.State.Message(channelID, messageID)
+		if err != nil {
+			fmt.Println("Error creating message:", err)
+			cancelBattle()
+			return
+		}
 
-    response, err := s.ChannelMessageWait(msg.ID, time.Second*30)
-    if err != nil {
-      fmt.Println("Error waiting for message:", err)
-      cancelBattle()
-      return
-    }
+		response, err := s.State.Message(channelID, msg.ID)
+		if err != nil {
+			fmt.Println("Error waiting for message:", err)
+			cancelBattle()
+			return
+		}
 
-    if response.Author.ID == s.State.User.ID {
-      // Ignore messages from the bot itself
-      continue
-    }
+		if response.Author.ID == s.State.User.ID {
+			// Ignore messages from the bot itself
+			continue
+		}
 
-    // Check for cancel command
-    if strings.ToLower(response.Content) == "cancel" {
-      cancelBattle()
-      return
-    }
+		// Check for cancel command
+		if strings.ToLower(response.Content) == "cancel" {
+			cancelBattle()
+			return
+		}
 
-    // Parse user input as initiative
-    initiative, err := strconv.Atoi(response.Content)
-    if err != nil {
-      s.ChannelMessageSend(channelID, "Invalid initiative input. Please enter a number.")
-      continue
-    }
+		// Parse user input as initiative
+		initiative, err := strconv.Atoi(response.Content)
+		if err != nil {
+			s.ChannelMessageSend(channelID, "Invalid initiative input. Please enter a number.")
+			continue
+		}
 
-    // Store user input
-    userInput[response.Author.Username] = initiative
+		// Store user input
+		userInput[response.Author.Username] = initiative
 
-    // Display current initiative status
-    displayInitiativeStatus()
+		// Display current initiative status
+		displayInitiativeStatus()
 
-    // Check if all players have provided initiative
-    if allPlayersReady() {
-      initiativeTracker.sortEntities()
-      displayTurnOrder(s, channelID, initiativeTracker.entities)
-      return
-    }
-  }
+		// Check if all players have provided initiative
+		if allPlayersReady() {
+			it.SortEntities()
+			displayTurnOrder(s, channelID, it.entities)
+			return
+		}
+	}
 }
-
-
 
 func displayTurnOrder(s *discordgo.Session, channelID string, entities []entity) {
 	s.ChannelMessageSend(channelID, "Initiative order:")

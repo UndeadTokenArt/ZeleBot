@@ -1,7 +1,6 @@
 package main
 
 type monster struct {
-	name       string
 	damage     int
 	initiative int
 }
