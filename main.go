@@ -27,6 +27,8 @@ func main() {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
+  
+
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
@@ -55,8 +57,6 @@ func main() {
 // message is created on any channel that the authenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -64,104 +64,91 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.ToLower(m.Content) == "!beginbattle" {
 		beginBattle(s, m.ChannelID)
 	}
-
-	type messageEvent struct {
-		greeting map[string]string
-    commands map[string]string
-	}
-	var r messageEvent
-
-	r.greeting = map[string]string{
-		"hello":     "Greetings!",
-		"whats up?": "Not much",
-		"hi":        "Hello!",
-		"hey":       "hey",
-	}
-
-	r.commands = map[string]string{
-		"begin battle": beginBattle(),
-	}
-
-
-	input := strings.ToLower(m.Content)
-
-	if value, ok := r.greeting[input]; ok {
-		s.ChannelMessageSend(m.ChannelID, value+" "+m.Author.Username)
-	}
-	if value, ok := r.commands[input]; ok {
-		s.ChannelMessageSend(m.ChannelID, value)
-	}
 }
 
 type entity interface {
-	attack(target entity, dmg int)
-	getCurrentDmgDone() int
-	getInitiative() int
+  attack(target entity, dmg int)
+  getCurrentDmgDone() int
+  getInitiative() int
 }
 
 func beginBattle(s *discordgo.Session, channelID string) {
-	initiativeTracker.clearEntities()
+  initiativeTracker.clearEntities()
 
-	s.ChannelMessageSend(channelID, "Let's begin the battle! Please provide your initiative total. Type 'cancel' at any time to cancel the battle.")
+  s.ChannelMessageSend(channelID, "Let's begin the battle! Please provide your initiative total. Type 'cancel' at any time to cancel the battle.")
 
-	for {
-		select {
-		case <-time.After(30 * time.Second):
-			// Timeout after 30 seconds
-			s.ChannelMessageSend(channelID, "Initiative input timeout. Battle canceled.")
-			return
-		default:
-			s.ChannelMessageSend(channelID, "What is your initiative total?")
+  // Create a map to store user input
+  userInput := make(map[string]int)
 
-			// Wait for the user's response
-			msg, err := s.ChannelMessageCreate(channelID)
-			if err != nil {
-				fmt.Println("Error creating message:", err)
-				return
-			}
+  // Function to check if all players have provided initiative
+  allPlayersReady := func() bool {
+    return len(userInput) == numberOfPlayers
+  }
 
-			// Wait for the user's response
-			response, err := s.ChannelMessageWait(msg.ID, time.Second*30)
-			if err != nil {
-				fmt.Println("Error waiting for message:", err)
-				return
-			}
+  // Function to display the current initiative status
+  displayInitiativeStatus := func() {
+    var statusMessage strings.Builder
+    statusMessage.WriteString("Initiative status:\n")
+    for player, initiative := range userInput {
+      statusMessage.WriteString(fmt.Sprintf("%s: Initiative %d\n", player, initiative))
+    }
+    s.ChannelMessageSend(channelID, statusMessage.String())
+  }
 
-			if response.Author.ID == s.State.User.ID {
-				// Ignore messages from the bot itself
-				continue
-			}
+  // Function to cancel the battle
+  cancelBattle := func() {
+    s.ChannelMessageSend(channelID, "Battle canceled.")
+  }
 
-			if strings.ToLower(response.Content) == "cancel" {
-				s.ChannelMessageSend(channelID, "Battle canceled.")
-				return
-			}
+  for {
+    // Collect messages
+    msg, err := s.ChannelMessageCreate(channelID)
+    if err != nil {
+      fmt.Println("Error creating message:", err)
+      cancelBattle()
+      return
+    }
 
-			initiative, err := strconv.Atoi(response.Content)
-			if err != nil {
-				s.ChannelMessageSend(channelID, "Invalid initiative input. Please enter a number.")
-				continue
-			}
+    response, err := s.ChannelMessageWait(msg.ID, time.Second*30)
+    if err != nil {
+      fmt.Println("Error waiting for message:", err)
+      cancelBattle()
+      return
+    }
 
-			player := &player{
-				name:       response.Author.Username,
-				initiative: initiative,
-				// Other player fields...
-			}
+    if response.Author.ID == s.State.User.ID {
+      // Ignore messages from the bot itself
+      continue
+    }
 
-			initiativeTracker.addEntity(player)
+    // Check for cancel command
+    if strings.ToLower(response.Content) == "cancel" {
+      cancelBattle()
+      return
+    }
 
-			s.ChannelMessageSend(channelID, fmt.Sprintf("%s, your initiative is %d.", player.name, player.initiative))
+    // Parse user input as initiative
+    initiative, err := strconv.Atoi(response.Content)
+    if err != nil {
+      s.ChannelMessageSend(channelID, "Invalid initiative input. Please enter a number.")
+      continue
+    }
 
-			// Check if all players have provided initiative
-			if len(initiativeTracker.entities) == numberOfPlayers {
-				initiativeTracker.sortEntities()
-				displayTurnOrder(s, channelID, initiativeTracker.entities)
-				return
-			}
-		}
-	}
+    // Store user input
+    userInput[response.Author.Username] = initiative
+
+    // Display current initiative status
+    displayInitiativeStatus()
+
+    // Check if all players have provided initiative
+    if allPlayersReady() {
+      initiativeTracker.sortEntities()
+      displayTurnOrder(s, channelID, initiativeTracker.entities)
+      return
+    }
+  }
 }
+
 
 
 func displayTurnOrder(s *discordgo.Session, channelID string, entities []entity) {

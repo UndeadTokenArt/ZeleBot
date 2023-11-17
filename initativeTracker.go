@@ -1,5 +1,8 @@
 package main
 
+import (
+)
+
 type InitiativeTracker struct {
 	entities []entity
 }
@@ -9,9 +12,7 @@ func (it *InitiativeTracker) addEntity(e entity) {
 }
 
 func (it *InitiativeTracker) sortEntities() {
-	sort.Slice(it.entities, func(i, j int) bool {
-		return it.entities[i].getInitiative() > it.entities[j].getInitiative()
-	})
+	// sort logic needs to be set up
 }
 
 func (it *InitiativeTracker) getCurrentEntity() entity {
