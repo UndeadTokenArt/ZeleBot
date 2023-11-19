@@ -20,5 +20,3 @@ func (m *monster) getCurrentDmgDone() int {
 func (m *monster) getInitiative() int {
 	return m.initiative
 }
-
-
