@@ -155,3 +155,151 @@ func displayTurnOrder(s *discordgo.Session, channelID string, entities []entity)
 		s.ChannelMessageSend(channelID, fmt.Sprintf("%s: Initiative %d", e.(*player).name, e.getInitiative()))
 	}
 }
+
+type Region struct {
+	Cities
+}
+
+type Cities struct {
+	name        []string
+	Factions    []string
+	Shops       []string
+	Civic       []string
+	Resedential []string
+	Workshops   []string
+}
+
+func (r *Region) Populate() {
+	r.Cities.name = []string{
+		"Eldoria",
+		"Silverhaven",
+		"Frostfall",
+		"Emberkeep",
+		"Celestial Springs",
+		"Stormwatch",
+		"Shadowmere",
+		"Crystalis",
+		"Starlight Citadel",
+		"Ironspire",
+		"Moonshadow",
+		"Verdant Vale",
+		"Thunderpeak",
+		"Obsidian Reach",
+		"Solaris Sanctum",
+		"Serpent's Haven",
+		"Mistwood",
+		"Phoenix Landing",
+		"Astral Haven",
+		"Stormsgate",
+	}
+	r.Cities.Factions = []string{
+		"Order of the Silver Shield",
+		"Crimson Brotherhood",
+		"Arcane Consortium",
+		"Serpent's Embrace",
+		"The Moonlit Syndicate",
+		"Ironclad Alliance",
+		"Eternal Enclave",
+		"Shadowborn Covenant",
+		"Celestial Council",
+		"Frostborn Legion",
+		"Starweaver Guild",
+		"Emberforge Clan",
+		"Whispering Shadows",
+		"Stormbringer Clan",
+		"Phoenix Ascendancy",
+		"Obsidian Union",
+		"Verdant Pact",
+		"Mistwalkers",
+		"Astral Conclave",
+		"Thunderlords",
+	}
+	r.Cities.Shops = []string{
+		"Enchanted Emporium",
+		"Mystic Wares",
+		"Dragon's Hoard Outfitters",
+		"Wizard's Wonders",
+		"Elven Elegance",
+		"Dwarven Forge Supplies",
+		"Celestial Trinkets",
+		"Sorcerer's Stockpile",
+		"Alchemy Alley",
+		"Adventurer's Attire",
+		"Treasure Trove Traders",
+		"Goblin Goods",
+		"Fey Folk Finds",
+		"Necromancer's Necessities",
+		"Phoenix Feathers and More",
+		"Clockwork Curiosities",
+		"Bard's Melodies and Merchandise",
+		"Rogue's Rarities",
+		"Warlock's Weaves",
+		"Druid's Delights",
+	}
+	r.Cities.Civic = []string{
+		"Royal Citadel",
+		"Mage's Tower",
+		"Elven Arboretum",
+		"Dwarven Hall of Ancestors",
+		"Celestial Observatory",
+		"Sorcerer's Library",
+		"Council Hall",
+		"Grand Bazaar",
+		"Enchanted Gardens",
+		"Goblin Market",
+		"Dragon Roost",
+		"Feywild Plaza",
+		"Clockwork Workshop",
+		"Bardic Amphitheater",
+		"Thieves' Den",
+		"Warlock's Spire",
+		"Druidic Sanctuary",
+		"Phoenix Memorial Park",
+		"Necropolis",
+		"Titan's Arena",
+	}
+	r.Cities.Resedential = []string{
+		"Elven Treehouse",
+		"Dwarven Stone Cottage",
+		"Mage's Floating Manor",
+		"Feywild Enclave",
+		"Dragon-Rider's Roost",
+		"Gnome Burrow",
+		"Hobbit Hillside Hovel",
+		"Mermaid's Grotto",
+		"Celestial Sky Tower",
+		"Steampunk Loft",
+		"Wizard's Study Residence",
+		"Phoenix Perch Apartments",
+		"Goblin Alley Flats",
+		"Sorcerer's Spiral Spire",
+		"Druidic Tree Canopy Homes",
+		"Clockwork Condos",
+		"Necromancer's Crypt Apartments",
+		"Aquatic Abyss Apartments",
+		"Urban Mage Penthouse",
+		"Nomadic Wanderer's Wagon",
+	}
+	r.Cities.Workshops = []string{
+		"Forgemaster's Foundry",
+		"Enchanting Emporium",
+		"Weaver's Workshop",
+		"Lumberjack's Lodge",
+		"Alchemist's Apothecary",
+		"Clockmaker's Studio",
+		"Blacksmith's Forge",
+		"Golem Workshop",
+		"Artificer's Atelier",
+		"Glassblower's Gallery",
+		"Tinkerer's Tavern",
+		"Tailor's Tailoring",
+		"Herbalist's Haven",
+		"Crafter's Corner",
+		"Gemcutter's Gemworks",
+		"Scribe's Scriptorium",
+		"Sculptor's Studio",
+		"Potion Brewery",
+		"Magitech Manufacturing",
+		"Metalworks Manor",
+	}
+}
